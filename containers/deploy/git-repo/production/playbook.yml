@@ -1,0 +1,44 @@
+---
+- name: Deploy corp application
+  hosts: production
+  gather_facts: false
+
+  tasks:
+    - name: Ensure deployment directory exists
+      file:
+        path: /home/target/app
+        state: directory
+        mode: '0755'
+
+    - name: Ensure log directory exists
+      file:
+        path: /home/target/app/logs
+        state: directory
+        mode: '0755'
+
+    - name: Write deployment timestamp
+      copy:
+        content: "{{ lookup('pipe', 'date') }}\n"
+        dest: /home/target/app/last-deployed
+
+    - name: Write app config
+      copy:
+        content: |
+          [app]
+          env=production
+          log_level=warn
+          log_dir=/home/target/app/logs
+        dest: /home/target/app/config.ini
+        mode: '0644'
+
+    - name: Rotate old logs
+      shell: |
+        find /home/target/app/logs -name "*.log" -mtime +7 -delete
+      args:
+        executable: /bin/bash
+
+    - name: Verify deployment
+      shell: |
+        echo "$(date '+%Y-%m-%d %H:%M:%S') deployment ok" >> /home/target/app/logs/deploy.log
+      args:
+        executable: /bin/bash

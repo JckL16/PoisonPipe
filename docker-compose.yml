@@ -1,0 +1,33 @@
+services:
+  deploy:
+    build:
+      context: ./containers
+      dockerfile: deploy/Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      public:
+      internal:
+        ipv4_address: 10.10.10.2
+    restart: unless-stopped
+
+  flag-holder:
+    build:
+      context: ./containers
+      dockerfile: flag-holder/Dockerfile
+    networks:
+      internal:
+        ipv4_address: 10.10.10.3
+    restart: unless-stopped
+
+networks:
+  public:
+    driver: bridge
+
+  internal:
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 10.10.10.0/24
+          gateway: 10.10.10.1

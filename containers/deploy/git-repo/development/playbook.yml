@@ -1,0 +1,39 @@
+---
+- name: Deploy corp application
+  hosts: production
+  gather_facts: true
+
+  tasks:
+    - name: Debug target host info
+      debug:
+        msg: "Deploying to {{ inventory_hostname }} ({{ ansible_system }} {{ ansible_distribution }} {{ ansible_distribution_version }})"
+
+    - name: Ensure deployment directory exists
+      file:
+        path: /home/target/app
+        state: directory
+        mode: '0755'
+
+    - name: Ensure log directory exists
+      file:
+        path: /home/target/app/logs
+        state: directory
+        mode: '0755'
+
+    - name: Write deployment timestamp
+      copy:
+        content: "{{ lookup('pipe', 'date') }}\n"
+        dest: /home/target/app/last-deployed
+
+    - name: Debug deployment timestamp
+      shell: cat /home/target/app/last-deployed
+      register: timestamp
+      args:
+        executable: /bin/bash
+
+    - name: Print timestamp
+      debug:
+        msg: "Last deployed: {{ timestamp.stdout }}"
+
+    # TODO: add config write task (see production branch)
+    # TODO: add log rotation

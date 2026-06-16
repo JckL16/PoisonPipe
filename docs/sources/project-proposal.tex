@@ -1,0 +1,116 @@
+\documentclass{article}
+\usepackage[margin=3cm]{geometry}
+\usepackage{graphicx}
+
+\title{Project Proposal - CI/CD Pipeline Poisoning}
+\author{Jack Lindberg}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+Continuous Integration and Continuous Delivery (CI/CD) is the practice of automating the stages that code, and any other kind of software, must pass through from a developer's commit to a running production system. Continuous Integration (CI) means that every change pushed to a shared repository is automatically built and tested, catching integration errors early before they affect end users \cite{fowlerCI}. Continuous Delivery (CD) is the next step in this process where it automatically prepares validated builds for release. Continuous Deployment takes the final step of pushing every passing change directly to production. Together these stages form a so called pipeline: an automated chain that handles code from an individual developer's commit to the deployment to a running live system (production).
+
+Modern development teams rely heavily on CI/CD to ship software quickly and with confidence. As a consequence, these pipelines have become critical infrastructure. They typically hold production secrets and the authority to modify live systems, often with high-level credentials \cite{owaspPPE5}. This makes them high-value targets and a resource that is important to protect, while still not being able to be airgapped as they need to be able to access the production environment to do their work. An adversary who can influence what the pipeline executes gains the same level of access as the pipeline itself, without ever touching a production system directly \cite{owaspPPE}. With the correct credentials and a big enough code base these changes can even go undetected for a long time in larger organizations or teams.
+
+Configuration management tools such as Ansible \cite{ansibleDocs} are commonly driven from CI/CD pipelines. An Ansible playbook committed to a repository can be automatically applied to production hosts on every push, using the same SSH credentials the operations team uses. This project targets exactly that and shows the consequences of what access to such a code base can result in.
+
+\section{Background}
+
+\subsection{Supply Chain Attacks and CI/CD}
+
+A supply chain attack targets the infrastructure used to build, test, or distribute software rather than the systems directly. By compromising a service hosting the dependencies, for example a build system, a dependency repository, or a deployment pipeline, an attacker's code reaches systems automatically and is automatically trusted, since it arrives through a channel the organization already relies on and trusts \cite{owaspPPE}.
+
+CI/CD pipeline poisoning is a specific technique within this family. An attacker who can introduce malicious code into a pipeline's source repository does not need to exploit any vulnerability in the production system: the pipeline itself carries out the attack on their behalf. The OWASP Top 10 CI/CD Security Risks classifies this as CICD-SEC-4: Poisoned Pipeline Execution \cite{owaspPPE}. MITRE ATT\&CK catalogs it as its own Enterprise Execution technique \cite{mitrePoisonedPipeline}. This attack is classified as a Direct PPE (d-PPE) when the attacker commits directly to the branch the pipeline tracks, meaning execution is immediate without requiring review  \cite{bishopFoxPPE}. In this CTF that is exactly what we can exploit, since no validation of pushed code takes place.
+
+\subsection{Assumptions}
+
+Three conditions must hold for a d-PPE attack to succeed \cite{bishopFoxPPE}:
+
+\begin{enumerate}
+    \item \textbf{Automatic execution} - the pipeline executes code from the repository without manual approval for each run.
+    \item \textbf{Attacker write access} - the adversary can modify the code the pipeline will execute.
+    \item \textbf{Privilege gap} - the pipeline agent runs with credentials or network access the attacker does not otherwise possess.
+\end{enumerate}
+
+None of these conditions are particularly rare. Pipelines are designed to run automatically \cite{fowlerCI}; broad write access is common in small teams and pipeline agents typically hold deployment keys that go well beyond what any individual contributor needs \cite{owaspPPE}.
+
+\subsection{Why Prevention is Difficult}
+
+The core problem with prevention is that write access to source code is a legitimate business need. Restricting it in big organizations slows development without eliminating the risk, since a compromised legitimate account grants the same access anyway \cite{owaspPPE}. Even with mandatory code review, the organization must trust that reviewers catch malicious changes, which can be as small as a single line in a massive repository \cite{bishopFoxPPE}.
+
+Monitoring pipeline execution for malicious behavior is also difficult. Unlike traditional intrusion detection, there is no clean separation between expected and unexpected activity: the pipeline is supposed to modify systems, spawn processes, and make network connections \cite{owaspPPE}.
+
+\subsection{Countermeasures}
+
+Several controls reduce the attack surface, though none eliminates the risk on its own. Requiring mandatory code review before changes reach the pipeline-tracked branch makes direct d-PPE from a single compromised account harder. Scoping the credentials available to the pipeline to the minimum needed for its specific task  limits the damage if it is exploited \cite{owaspPPE5}. There are many other countermeasures but all of them make the Continuous Integration more and more cumbersome with growing teams and expectations. 
+
+\section{Exploit}
+
+\subsection{Attack constraints}
+The attacker's sole access vector is the Gitea \cite{giteaDocs} instance exposed on port 3000. They possess a short list of leaked credentials for user accounts in the target organization, one of which grants write access to the Ansible \cite{ansibleDocs} configuration repository. The following are the constraints put in place for the attacker:
+
+\begin{itemize}
+    \item The attacker has no SSH or shell access to the deployment machine.
+    \item The attacker has no direct network access to the flag-holder machine.
+    \item The attacker has no administrative access to the Gitea instance.
+    \item No attempt is made to exploit vulnerabilities in the Gitea software itself.
+\end{itemize}
+
+The goal is to achieve code execution on the flag-holder machine exclusively by injecting a malicious task into the Ansible playbook and waiting for the pipeline to apply it. As the attack would otherwise not really be about CI/CD poisoning but rather something else.
+
+\subsection{Attack Stages}
+
+\subsubsection{Prerequisites}
+
+The participant receives a short list of credentials for multiple user accounts in the target organization's Gitea instance. But only one of them will have a guessable password from the leaked list.
+
+\subsubsection{Reconnaissance}
+
+After authenticating with the correct credentials, the participant browses the Gitea repository to read the Ansible inventory and existing playbook \cite{mitreRecon}. This reveals the internal hostname and SSH user configured for the flag-holder machine --- the information needed to craft a working payload.
+
+\subsubsection{Weaponization}
+
+With the target environment mapped, the participant adds a malicious Ansible task to the existing playbook. Because this is a d-PPE scenario \cite{bishopFoxPPE}, the commit goes directly to the default branch and is deployed on the flag-holder system on the next pipeline run \cite{owaspPPE}.
+
+\subsubsection{Delivery and Exploitation}
+
+Delivery is a push of the modified playbook to the Gitea repository. A cron-driven pipeline on the deployment machine polls Gitea every two minutes, pulls any changes and applies the playbook with Ansible. Because the deployment machine holds the SSH key that authorities connections to the flag-holder, the malicious task executes there with those privileges.
+
+\section{Implementation}
+
+\subsection{Technical Details}
+
+The environment is built with Docker Compose and consists of two containers connected by an isolated internal Docker network . Only port 3000 (Gitea) on the deployment container is exposed to the host,.
+
+\subsubsection{Deployment Container}
+
+This container hosts the Gitea instance \cite{giteaDocs} and runs the pipeline. Its configuration is:
+\begin{itemize}
+    \item A Gitea instance on port 3000 with the ansible-config repository and multiple user accounts, one of which has the leaked credentials given to participants.
+    \item A cron job running every two minutes as the unprivileged deploy user that pulls the latest playbook from Gitea and applies it using Ansible \cite{ansibleDocs}.
+    \item The deploy user holds an SSH private key authorizing connections to the flag-holder.
+\end{itemize}
+
+\subsubsection{Flag-Holder Container}
+
+This container runs only an SSH server and holds the flag at /home/target/flag.txt. It is reachable exclusively via SSH from the deployment machine using the shared key pair. No port is exposed to the host, making it unreachable by the attacker except through a successfully poisoned pipeline.
+
+\subsection{Repository Contents}
+
+The project repository will contain:
+
+\begin{itemize}
+    \item This proposal and a final report.
+    \item Instructions for running the environment, including software dependencies.
+    \item All source files for the Docker Compose environment.
+    \item The leaked credential list provided to participants as their starting point.
+    \item A proof-of-concept walkthrough demonstrating the entire chain.
+\end{itemize}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
