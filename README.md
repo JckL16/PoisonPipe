@@ -8,16 +8,16 @@ This is a project repository for the course EP284U - Ethical Hacking. The demo s
 
 - **Built around docker compose** – The entire project is built around a single docker-compose file and docker is therefore the only dependency for running this project
 - **Purpose built containers** - The containers used for the docker setup are based around the alpine and debian base containers and are purpose built for this setup. Making them lightweight and making the process of running the setup fast.
-- **Reports on the weakness** - In the [/docs] directory you can find pdfs and their corresponding source .tex files where I explain the exploit, the process of building it and also the initial proposal i wrote for the project. The final report also includes a walkthrough of the exploit and its different stages mapped to the [Cyber Kill Chain](https://www.lockheedmartin.com/en-us/capabilities/cyber/cyber-kill-chain.html).
+- **Reports on the weakness** - In the [docs](docs) directory you can find pdfs and their corresponding source .tex files where I explain the exploit, the process of building it and also the initial proposal i wrote for the project. The final report also includes a walkthrough of the exploit and its different stages mapped to the [Cyber Kill Chain](https://www.lockheedmartin.com/en-us/capabilities/cyber/cyber-kill-chain.html).
 
 ---
 
-## Quick Start
+## Running the demo
 
 ### Dependencies
 
 - Docker and docker-compose
-- A computer **NOT** on the 10.10.10.0/24 network (You can also simply change the network in the [docker-compose.yml] file if this is a problem)
+- A computer **NOT** on the 10.10.10.0/24 network (You can also simply change the network in the [docker-compose.yml](docker-compose.yml) file if this is a problem)
 - (Internet connection)
 
 ### Installations
@@ -52,13 +52,14 @@ The constraints are as follows:
 2. You may not access the containers using the docker deamon. This includes checking logs or running an interactive shell.
 3. You may not attack the services in the containers with exploits. You will have access to credentials that will allow you to access the services you need and no CVEs have to be used in the challenge
 4. You will not have access to the flag-holder machine through any other way than by going through the cicd-pipeline on the deploy machine. Any other way you may find in is **NOT INTENDED**
+5. I recommend you do not read the entire final report or the project proposal if you plan on finding the exploit yourself, as it will give a complete walkthrough on every step of the exploitation chain
 
 ### Where to begin
 
 With the contraints out of the way these are 2 pieces of information you need to start. 
 
 1. The IP address 10.10.10.2 might have something interesting on it
-2. You can find some credentials that might come in handy in the [/leaked-credentials.md]
+2. You can find some credentials that might come in handy in the [leaked-credentials.md](leaked-credentials.md)
 
 ## Repository Structure
 ```
