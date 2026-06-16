@@ -62,22 +62,22 @@ With the contraints out of the way these are 2 pieces of information you need to
 
 ## Repository Structure
 ```
- PoisonPipe
-├──  containers                  # The context for the docker containers build process
-│   ├──  deploy                  # Setup for the Gitea server and the "deploy server" of the CICD pipeline
-│   │   ├──  config              # Configuration for the Gitea server
-│   │   ├──  git-repo            # The two different git repos that will be on the gitea server and that the attacker will exploit
-│   │   │   ├──  development
-│   │   │   └──  production
-│   │   ├──  scripts             # Scripts that the docker container uses. Including its entrypoint and the deploy script
-│   │   └──  Dockerfile
-│   ├──  flag-holder             # Setup for the "flag-holder" server. Including the actual flag
-│   └──  shared                  # A shared ssh key used for the deployment. Used by the deploy server to run ansible over ssh
-├──  docs
-│   ├──  sources                 # The sources for the pdfs including the .tex files and the references used
-│   └──  project-proposal.pdf    # The project-proposal for the demo and the project as a whole
-├──  docker-compose.yml          # The main docker compose file
-├──  leaked-credentials.md       # A small file containing the credentials needed to run the exploit
-├──  LICENCE
-└── 󰂺 README.md
+📁 PoisonPipe
+├── 📁 containers                  # The context for the docker containers build process
+│   ├── 📁 deploy                  # Setup for the Gitea server and the "deploy server" of the CICD pipeline
+│   │   ├── 📁 config              # Configuration for the Gitea server
+│   │   ├── 📁 git-repo            # The two different git repos that will be on the gitea server and that the attacker will exploit
+│   │   │   ├── 📁 development
+│   │   │   └── 📁 production
+│   │   ├── 📁 scripts             # Scripts that the docker container uses. Including its entrypoint and the deploy script
+│   │   └── 📄 Dockerfile
+│   ├── 📁 flag-holder             # Setup for the "flag-holder" server. Including the actual flag
+│   └── 📁 shared                  # A shared ssh key used for the deployment. Used by the deploy server to run ansible over ssh
+├── 📁 docs
+│   ├── 📁 sources                 # The sources for the pdfs including the .tex files and the references used
+│   └── 📄 project-proposal.pdf    # The project-proposal for the demo and the project as a whole
+├── 📄 docker-compose.yml          # The main docker compose file
+├── 📄 leaked-credentials.md       # A small file containing the credentials needed to run the exploit
+├── 📄 LICENCE
+└── 📖 README.md
 ```
