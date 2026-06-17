@@ -12,6 +12,17 @@ This is a project repository for the course EP284U - Ethical Hacking. The demo s
 
 ---
 
+## Documentation
+
+The [docs](docs) directory contains two reports:
+
+- **[Final Report](docs/final-report.pdf)** - A full write-up of the vulnerability, the implementation, and a complete step-by-step walkthrough of the exploit mapped to the Cyber Kill Chain.
+- **[Project Proposal](docs/project-proposal.pdf)** - The initial proposal submitted before the project was built.
+
+> **Note:** If you plan to try the exploit yourself first, avoid reading the final report as it contains a complete walkthrough of every step of the exploit.
+
+---
+
 ## Running the demo
 
 ### Dependencies
@@ -80,7 +91,8 @@ With the contraints out of the way these are 2 pieces of information you need to
 │   └── / shared                  # A shared ssh key used for the deployment. Used by the deploy server to run ansible over ssh
 ├── / docs
 │   ├── / sources                 # The sources for the pdfs including the .tex files and the references used
-│   └── project-proposal.pdf    # The project-proposal for the demo and the project as a whole
+│   ├── final-report.pdf        # Full write-up with exploit walkthrough and background theory
+│   └── project-proposal.pdf    # The initial project proposal
 ├── docker-compose.yml          # The main docker compose file
 ├── leaked-credentials.md       # A small file containing the credentials needed to run the exploit
 ├── LICENCE
