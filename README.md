@@ -39,6 +39,8 @@ docker compose up -d
 docker compose down --rmi all
 ```
 
+---
+
 ## Try it yourself
 
 Make sure to run the setup using the commands above for running the demo. After this you can try to find and use the exploit yourself.
@@ -60,6 +62,8 @@ With the contraints out of the way these are 2 pieces of information you need to
 
 1. The IP address 10.10.10.2 might have something interesting on it
 2. You can find some credentials that might come in handy in the [leaked-credentials.md](leaked-credentials.md)
+
+---
 
 ## Repository Structure
 ```

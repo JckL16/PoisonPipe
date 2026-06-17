@@ -1,5 +1,6 @@
 services:
   deploy:
+    hostname: deploy-server
     build:
       context: ./containers
       dockerfile: deploy/Dockerfile
@@ -12,6 +13,7 @@ services:
     restart: unless-stopped
 
   flag-holder:
+    hostname: flag-holder
     build:
       context: ./containers
       dockerfile: flag-holder/Dockerfile
