@@ -57,11 +57,19 @@ The following are explicitly outside of the scope for this project and are not i
 
 The core problem with prevention is that write access to source code is a legitimate business need. Restricting it in big organizations slows development without eliminating the risk, since a compromised legitimate account grants the same access anyway \cite{owaspPPE}. Even with mandatory code review, the organization must trust that reviewers catch malicious changes, which can be as small as a single line in a massive repository \cite{bishopFoxPPE}.
 
-Monitoring pipeline execution for malicious behavior is also difficult. Unlike traditional intrusion detection, there is no clean separation between expected and unexpected activity: the pipeline is supposed to modify systems, spawn processes, and make network connections \cite{owaspPPE}.
+Monitoring pipeline execution for malicious behavior is also difficult. Unlike traditional intrusion detection, there is no clean separation between expected and unexpected activity: the pipeline might be supposed to modify systems, spawn processes, and make network connections \cite{owaspPPE}. Even system call-level monitoring faces this same problem, since the injected payload runs inside the same process context as the build script and uses the exact same calls (spawning sub-processes, opening network connection and reading an environment variable) that any normal build step might want to do.
 
 \subsection{Countermeasures}
 
-Several controls reduce the attack surface, though none eliminates the risk on its own. Requiring mandatory code review before changes reach the pipeline-tracked branch makes direct d-PPE from a single compromised account harder. Scoping the credentials available to the pipeline to the minimum needed for its specific task  limits the damage if it is exploited \cite{owaspPPE5}. There are many other countermeasures but all of them make the Continuous Integration more and more cumbersome with growing teams and expectations. 
+Several countermeasures reduce the attack surface or makes the necessary malicious code much more complicated, however none completely eliminates the risk on their own. 
+
+Requiring mandatory code review before changes reach the pipeline-tracked branch makes direct d-PPE from a single compromised account harder, as there must always be another \textit{human} involved in the process of merging changes to the "live config". However, this countermeasure does not necessarily prevent malicious code from being approved, as the human reviewing the code might not understand the malicious implication if it is well-engineered and obfuscated. With the rise of AI code reviewers, another attack vector is to target the reviewer itself through prompt injection embedded in the submitted code \cite{owaspLLM01}.
+
+Scoping the credentials available to the pipeline to the minimum needed for its specific task also limits the damage if it is exploited \cite{owaspPPE5}. This might however greatly limit the practical use cases of the pipeline as it might not have access to credentials necessary to configure specific systems, networks or other parts of the infrastructure. 
+
+Another countermeasure might be to set up limitations for the systems in the environment itself. That is for example limiting which other systems a specific host may access or what local resources they can read from. This countermeasure would actually make the demo of this project much harder as the exfiltration of information from the flag-holder container would not be possible over the network if it was limited in network connections. 
+
+Making a mandatory step of testing changes in a so-called staging or development environment forces pipeline code to run in an isolated context first, where unexpected behavior such as unauthorized network connections or attempts to access production credentials could be detected \cite{owaspPPE}. However, a well-engineered payload can be made environment-aware: by checking for reachable endpoints or environment variables for example, it can remain dormant during staging and only activate once it reaches the production environment.
 
 \section{Implementation}
 
@@ -90,6 +98,7 @@ The project repository contains:
     \item This final report
     \item Instructions for running the environment, including software dependencies.
     \item All source files for the Docker Compose environment.
+    \item An attack.sh script that runs the entire exploit from beginning to end and gets you the flag
     \item The leaked credential list provided to participants as their starting point.
 \end{itemize}
 
@@ -125,8 +134,6 @@ Figure 1 shows the full attack sequence. Starting from the leaked credentials, t
     \caption{Full Attack Sequence}
     \label{fig:attack-seq}
 \end{figure}
-
-
 
 \subsection{Attack Stages}
 
