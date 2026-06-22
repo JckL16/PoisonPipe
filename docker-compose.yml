@@ -22,6 +22,18 @@ services:
         ipv4_address: 10.10.10.3
     restart: unless-stopped
 
+  attack:
+    hostname: attacker
+    build:
+      context: ./containers
+      dockerfile: attack/Dockerfile
+    networks:
+      internal:
+        ipv4_address: 10.10.10.4
+    profiles: ["attack"]
+    stdin_open: true
+    tty: true
+
 networks:
   public:
     driver: bridge

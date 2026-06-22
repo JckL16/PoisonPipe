@@ -6,8 +6,8 @@ This is a project repository for the course EP284U - Ethical Hacking. The demo s
 
 ## Features
 
-- **Built around docker compose** – The entire project is built around a single docker-compose file and docker is therefore the only dependency for running this project
-- **Purpose built containers** - The containers used for the docker setup are based around the alpine and debian base containers and are purpose built for this setup. Making them lightweight and making the process of running the setup fast.
+- **Built around docker compose** - Docker is the only dependency for running this project, including the attack itself. The entire setup, infrastructure and exploit, is encapsulated in a single `docker-compose.yml`.
+- **Purpose built containers** - The containers used for the docker setup are based around the alpine and debian base containers and are purpose built for this setup. Making them lightweight and making the process of running the setup fast. This includes a dedicated barebones attack container that runs the exploit with no host-side tool required.
 - **Reports on the weakness** - In the [docs](docs) directory you can find pdfs and their corresponding source .tex files where I explain the exploit, the process of building it and also the initial proposal i wrote for the project. The final report also includes a walkthrough of the exploit and its different stages mapped to the [Cyber Kill Chain](https://www.lockheedmartin.com/en-us/capabilities/cyber/cyber-kill-chain.html).
 
 ---
@@ -28,7 +28,7 @@ The [docs](docs) directory contains two reports:
 ### Dependencies
 
 - Docker and docker-compose
-- A computer **NOT** on the 10.10.10.0/24 network (You can also simply change the network in the [docker-compose.yml](docker-compose.yml) file if this is a problem)
+- A computer **NOT** on the 10.10.10.0/24 network (You can also simply change the network in the [docker-compose.yml](docker-compose.yml) file if this is a problem. This will however ruin the [attack script](containers/attack/attack.sh) if the necessary changes are not made.)
 - (Internet connection)
 
 ### Installations
@@ -45,9 +45,15 @@ cd PoisonPipe
 docker compose up -d
 ```
 
+**Running the exploit**
+```bash
+./attack.sh
+```
+This builds and launches the attack container automatically. All output, including the final output, appears in the same terminal.
+
 **Stopping and cleaning up after running the demo**
 ```bash
-docker compose down --rmi all
+docker compose --profile attack down --rmi all
 ```
 
 ---
@@ -87,14 +93,16 @@ With the contraints out of the way these are 2 pieces of information you need to
 │   │   │   └── / production
 │   │   ├── / scripts             # Scripts that the docker container uses. Including its entrypoint and the deploy script
 │   │   └── Dockerfile
+│   ├── / attack                  # Barebones attack container with the exploit script
 │   ├── / flag-holder             # Setup for the "flag-holder" server. Including the actual flag
 │   └── / shared                  # A shared ssh key used for the deployment. Used by the deploy server to run ansible over ssh
 ├── / docs
 │   ├── / sources                 # The sources for the pdfs including the .tex files and the references used
-│   ├── final-report.pdf        # Full write-up with exploit walkthrough and background theory
-│   └── project-proposal.pdf    # The initial project proposal
-├── docker-compose.yml          # The main docker compose file
-├── leaked-credentials.md       # A small file containing the credentials needed to run the exploit
+│   ├── final-report.pdf          # Full write-up with exploit walkthrough and background theory
+│   └── project-proposal.pdf      # The initial project proposal
+├── attack.sh                     # Builds and runs the attack container via docker compose
+├── docker-compose.yml            # The main docker compose file
+├── leaked-credentials.md         # A small file containing the credentials needed to run the exploit
 ├── LICENCE
 └── README.md
 ```
