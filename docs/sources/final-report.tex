@@ -71,6 +71,8 @@ Another countermeasure might be to set up limitations for the systems in the env
 
 Making a mandatory step of testing changes in a so-called staging or development environment forces pipeline code to run in an isolated context first, where unexpected behavior such as unauthorized network connections or attempts to access production credentials could be detected \cite{owaspPPE}. However, a well-engineered payload can be made environment-aware: by checking for reachable endpoints or environment variables for example, it can remain dormant during staging and only activate once it reaches the production environment.
 
+It is worth emphasizing that the relevance, feasibility and effectiveness of all countermeasures discussed above are \textbf{highly} dependent on the specific infrastructure and context in which the pipeline runs. A production system serving external customers through a DMZ presents a fundamentally different threat landscape than, for example, an air-gapped system. In the first case, outbound connections may go unnoticed among legitimate traffic; in the latter air-gapped system, the same behavior would be immediately halted or detected if the correct surveillance measures are in place. This means that there is no universal set of countermeasures for pipeline poisoning; the right mitigations must be derived from the security requirements, network topology and constraints of the specific environment.
+
 \section{Implementation}
 
 \subsection{Technical Details}
